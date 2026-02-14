@@ -24,6 +24,14 @@
 
         .msg-mine { background: #2563eb; border-radius: 1.2rem 0 1.2rem 1.2rem; }
         .msg-other { background: #1f2937; border-radius: 0 1.2rem 1.2rem 1.2rem; }
+
+        /* Style pou lis jwèt ak foto */
+        .game-select-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .game-option { flex: 0 0 80px; text-align: center; cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .game-option.selected { opacity: 1; transform: scale(1.1); }
+        .game-option img { width: 60px; height: 60px; border-radius: 15px; object-cover: cover; margin: 0 auto 5px; border: 2px solid transparent; }
+        .game-option.selected img { border-color: #3b82f6; }
+        .game-option span { font-size: 9px; font-weight: bold; text-transform: uppercase; display: block; }
     </style>
 </head>
 <body>
@@ -152,19 +160,34 @@
                 <button onclick="toggleModal('bet-modal', false)" class="text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <div class="space-y-3 no-scrollbar overflow-y-auto max-h-[70vh]">
-                <select id="bet-game" onchange="updateGameOptions()" class="w-full p-4 rounded-2xl input-field text-sm">
-                    <option value="Free Fire">Free Fire</option>
-                    <option value="CODM">CODM</option>
-                    <option value="PUBG Mobile">PUBG Mobile</option>
-                    <option value="Blood Strike">Blood Strike</option>
-                    <option value="DLS">DLS (Dream League)</option>
-                </select>
+                
+                <div class="game-select-container no-scrollbar" id="game-selector">
+                    <div class="game-option selected" onclick="selectGame('Free Fire')">
+                        <img src="https://res.cloudinary.com/dcpcbglsw/image/upload/v1770996847/e23ffb9c2e863d2fb034906c15d1bf98_pxlul2.jpg">
+                        <span>Free Fire</span>
+                    </div>
+                    <div class="game-option" onclick="selectGame('CODM')">
+                        <img src="https://res.cloudinary.com/dcpcbglsw/image/upload/v1770997001/c74e5bf57d250c1bfc7b0d96f39f42c7_wkpgqd.jpg">
+                        <span>CODM</span>
+                    </div>
+                    <div class="game-option" onclick="selectGame('PUBG Mobile')">
+                        <img src="https://res.cloudinary.com/dcpcbglsw/image/upload/v1770997081/c7072f4fca2663a155a55373d64a37be_f7vp1l.jpg">
+                        <span>PUBG</span>
+                    </div>
+                    <div class="game-option" onclick="selectGame('Blood Strike')">
+                        <img src="https://res.cloudinary.com/dcpcbglsw/image/upload/v1770997367/9476bb2a4d3910f6c63819d27abd24ef_fueziq.jpg">
+                        <span>Blood Strike</span>
+                    </div>
+                    <div class="game-option" onclick="selectGame('DLS')">
+                        <img src="https://res.cloudinary.com/dcpcbglsw/image/upload/v1770997700/ebba961300e1bee5773206a40657a81e_sr9vu9.jpg">
+                        <span>DLS</span>
+                    </div>
+                </div>
+                <input type="hidden" id="bet-game" value="Free Fire">
 
                 <div class="grid grid-cols-2 gap-2">
-                    <select id="bet-type-1" class="p-4 rounded-2xl input-field text-[11px] font-bold uppercase">
-                        </select>
-                    <select id="bet-type-2" class="p-4 rounded-2xl input-field text-[11px] font-bold uppercase">
-                        </select>
+                    <select id="bet-type-1" class="p-4 rounded-2xl input-field text-[11px] font-bold uppercase"></select>
+                    <select id="bet-type-2" class="p-4 rounded-2xl input-field text-[11px] font-bold uppercase"></select>
                 </div>
 
                 <input type="text" id="bet-uid" placeholder="ID Jwèt ou (UID)" class="w-full p-4 rounded-2xl input-field text-sm">
@@ -207,7 +230,7 @@
     </button>
 
     <div id="deposit-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 modal-bg">
-        <div class="glass-card w-full max-w-sm p-6 rounded-[2.5rem]">
+        <div class="glass-card w-full max-sm p-6 rounded-[2.5rem]">
             <h2 class="text-lg font-black italic text-green-500 uppercase mb-4 text-center">Fè yon depo</h2>
             <div class="bg-black/50 p-4 rounded-2xl border border-white/5 space-y-2 mb-6 text-sm text-center">
                 <p>Moncash: <span class="font-black text-blue-400">+509 37 57 7509</span></p>
@@ -223,7 +246,7 @@
     </div>
 
     <div id="withdraw-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 modal-bg">
-        <div class="glass-card w-full max-w-sm p-6 rounded-[2.5rem]">
+        <div class="glass-card w-full max-sm p-6 rounded-[2.5rem]">
             <h2 class="text-lg font-black italic text-red-500 uppercase mb-4 text-center">Mande yon retrè</h2>
             <div class="space-y-4">
                 <input type="number" id="withdraw-amount" placeholder="Montan HTG (Min 250)" class="w-full p-4 rounded-2xl input-field text-sm">
@@ -270,7 +293,6 @@
         let isSignup = false;
         let currentChallengeId = null;
 
-        // --- KONFIGIRASYON OPSYON JWÈT ---
         const gameOptions = {
             "Free Fire": {
                 types1: ["1v1", "2v2", "3v3", "4v4"],
@@ -294,18 +316,31 @@
             }
         };
 
+        window.selectGame = (gameName) => {
+            document.getElementById('bet-game').value = gameName;
+            
+            // Mete klas selected a sou bon div la
+            const options = document.querySelectorAll('.game-option');
+            options.forEach(opt => {
+                if (opt.querySelector('span').innerText === (gameName === "PUBG Mobile" ? "PUBG" : gameName)) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            
+            updateGameOptions();
+        };
+
         window.updateGameOptions = () => {
             const game = document.getElementById('bet-game').value;
             const t1 = document.getElementById('bet-type-1');
             const t2 = document.getElementById('bet-type-2');
-            
             const options = gameOptions[game];
-            
             t1.innerHTML = options.types1.map(opt => `<option value="${opt}">${opt}</option>`).join('');
             t2.innerHTML = options.types2.map(opt => `<option value="${opt}">${opt}</option>`).join('');
         };
 
-        // Inisyalize opsyon yo lè paj la chaje
         updateGameOptions();
 
         onAuthStateChanged(auth, (user) => {
@@ -385,14 +420,12 @@
             onValue(ref(db, `challenges/${id}`), (snap) => {
                 const c = snap.val();
                 if(!c) return;
-                
                 document.getElementById('join-game').innerText = c.game;
                 document.getElementById('join-type').innerText = `${c.type1} | ${c.type2}`;
                 document.getElementById('join-amount').innerText = c.bet_amount + " HTG";
                 document.getElementById('join-creator').innerText = c.creator_name;
                 document.getElementById('join-room').innerText = c.room_id;
                 document.getElementById('join-rules').innerText = c.rules;
-
                 const passContainer = document.getElementById('join-pass-container');
                 if (c.room_pass && c.room_pass.trim() !== "") {
                     document.getElementById('join-pass').innerText = c.room_pass;
@@ -400,7 +433,6 @@
                 } else {
                     passContainer.classList.add('hidden');
                 }
-
                 toggleModal('join-modal', true);
             }, { onlyOnce: true });
         };
@@ -409,30 +441,25 @@
             if(!currentChallengeId) return;
             const snap = await get(ref(db, `challenges/${currentChallengeId}`));
             const challenge = snap.val();
-
             if (!challenge || challenge.status !== "open") {
                 alert("Defi sa a pa disponib ankò!");
                 toggleModal('join-modal', false);
                 return;
             }
-
             if (currentUserData.balance < challenge.bet_amount) {
                 alert("Ou pa gen ase kòb!");
                 return;
             }
-
             try {
                 await update(ref(db, `challenges/${currentChallengeId}`), {
                     status: "accepted",
                     player2_id: auth.currentUser.uid,
                     player2_name: currentUserData.username
                 });
-
                 await update(ref(db, `users/${auth.currentUser.uid}`), {
                     balance: currentUserData.balance - challenge.bet_amount,
                     escrow: (currentUserData.escrow || 0) + challenge.bet_amount
                 });
-
                 alert("Defi aksepte! Siksè.");
                 toggleModal('join-modal', false);
             } catch (e) { alert(e.message); }
@@ -493,38 +520,20 @@
             const playerUid = document.getElementById('bet-uid').value.trim();
             const roomId = document.getElementById('bet-room').value.trim();
             const roomPass = document.getElementById('bet-room-pass').value.trim();
-
             if (!playerUid || !roomId) return alert("Mete UID ak ID Room nan!");
             if (amount < 100 || currentUserData.balance < amount) return alert("Balans ou pa ase!");
-
             try {
                 const challengeRef = push(ref(db, 'challenges'));
                 await set(challengeRef, {
-                    creator_id: auth.currentUser.uid,
-                    creator_name: currentUserData.username,
-                    game,
-                    type1,
-                    type2,
-                    player_uid: playerUid,
-                    room_id: roomId,
-                    room_pass: roomPass,
-                    bet_amount: amount,
-                    rules: rules || "Okenn règleman espesyal",
-                    status: "open",
-                    timestamp: serverTimestamp()
+                    creator_id: auth.currentUser.uid, creator_name: currentUserData.username,
+                    game, type1, type2, player_uid: playerUid, room_id: roomId, room_pass: roomPass,
+                    bet_amount: amount, rules: rules || "Okenn règleman espesyal", status: "open", timestamp: serverTimestamp()
                 });
-
-                await update(ref(db, `users/${auth.currentUser.uid}`), {
-                    balance: currentUserData.balance - amount,
-                    escrow: (currentUserData.escrow || 0) + amount
-                });
-
-                alert("Defi pibliye!");
-                toggleModal('bet-modal', false);
+                await update(ref(db, `users/${auth.currentUser.uid}`), { balance: currentUserData.balance - amount, escrow: (currentUserData.escrow || 0) + amount });
+                alert("Defi pibliye!"); toggleModal('bet-modal', false);
             } catch (e) { alert(e.message); }
         };
 
-        // --- DEPO & RETRÈ ---
         document.getElementById('submit-depo').onclick = async () => {
             const transId = document.getElementById('depo-id').value.trim();
             const proofFile = document.getElementById('depo-proof').files[0];
